@@ -1,61 +1,68 @@
+// The entire pipeline block defines the Jenkins pipeline
 pipeline {
+
+    // 'agent any' means the pipeline can run on any available Jenkins agent (machine)
     agent any
 
     environment {
         DOCKER_IMAGE = 'paycare-etl'
     }
 
+    // The 'stages' block contains all the steps of the CI pipeline
     stages {
-        stage('Clone Repository') {
+
+        // === Stage 1: Clone the GitHub repository ===
+        stage('Clone repository') {
             steps {
+                // This clones the Git repo from the 'development' branch
                 git branch: 'main', url: 'https://github.com/LyXoR51/paycare-etl.git'
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'pip install -r requirements.txt'
-            }
-        }
-
-        stage('Run Unit Tests') {
-            steps {
-                sh 'pytest --junitxml=unit-tests.xml'
-            }
-            post {
-                always {
-                    junit 'unit-tests.xml'  // Publish test results
-                }
-            }
-        }
-
+        // === Stage 2: Build a Docker image ===
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${DOCKER_IMAGE} .'
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
                 script {
-                    // Create input data file dynamically
-                    sh 'echo "employee_id,employee_name,salary\n101,Alice,5000\n102,Bob,7000" > input_data.csv'
-
-                    // Run the Docker container with mounted input/output files
-                    sh 'docker run --rm -v $(pwd)/input_data.csv:/app/input_data.csv -v $(pwd)/output_data.csv:/app/output_data.csv ${DOCKER_IMAGE}'
+                    // This builds a Docker image from the Dockerfile in the repo
+                    docker.build("${DOCKER_IMAGE}:latest")
                 }
             }
         }
+
+        // === Stage 3: Run tests inside the Docker container ===
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Run a command inside the Docker container built earlier
+                    // This uses pytest to run tests and outputs results to results.xml
+                    docker.image("${DOCKER_IMAGE}:latest").inside {
+                        sh 'python -m pytest --junitxml=results.xml'
+                    }
+                }
+            }
+        }
+
+        // === Stage 4: Archive test results ===
+        stage('Archive Results') {
+            steps {
+                // This tells Jenkins to store the test result file so it can be displayed in the UI
+                junit 'results.xml'
+            }
+        }
     }
 
-    post {
-        success {
-            echo 'ETL Pipeline completed successfully!'
-            // Optionally send notification (Slack/Email)
-        }
-        failure {
-            echo 'ETL Pipeline failed.'
-            // Optionally send notification (Slack/Email)
-        }
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
