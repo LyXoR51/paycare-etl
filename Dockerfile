@@ -1,8 +1,7 @@
-FROM continuumio/miniconda3
+FROM python:3.9-slim
 WORKDIR /home
 COPY . .
 RUN 
-    apt-get install -y python3 python3-pip && \
     apt update -y && \
     apt upgrade -y && \
     apt install -y nano build-essential gcc \
