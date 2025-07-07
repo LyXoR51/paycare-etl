@@ -15,7 +15,7 @@ pipeline {
         stage('Clone repository') {
             steps {
                 // This clones the Git repo from the 'development' branch
-                git branch: 'main', url: 'https://github.com/LyXoR51/paycare-etl.git'
+                git branch: 'main', url: 'https://github.com/qxzjy/paycare.git'
             }
         }
 
@@ -49,14 +49,43 @@ pipeline {
                 junit 'results.xml'
             }
         }
+    }
 
+    // === Post actions (run after the pipeline finishes) ===
+    post {
+        // If the pipeline is successful
+        success {
+            script {
+                echo "Success" // Log message in Jenkins console
 
+                // Send an email notification about the successful build
+                emailext(
+                    subject: "Jenkins Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """<p>Good news!</p>
+                             <p>The build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> was successful.</p>
+                             <p>View the details <a href="${env.BUILD_URL}">here</a>.</p>""",
+                    to: ''
+                )
+            }
+        }
 
+        // If the pipeline fails
+        failure {
+            script {
+                echo "Failure" // Log message in Jenkins console
 
-
-
-
-
+                // Send an email notification about the failed build
+                emailext(
+                    subject: "Jenkins Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """<p>Unfortunately, the build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> has failed.</p>
+                             <p>Please check the logs and address the issues.</p>
+                             <p>View the details <a href="${env.BUILD_URL}">here</a>.</p>""",
+                    to: ''
+                )
+            }
+        }
+    }
+}
 
 
 
