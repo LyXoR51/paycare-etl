@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM continuumio/miniconda3
 WORKDIR /home
 COPY . .
 RUN 
@@ -7,4 +7,4 @@ RUN
     apt install -y nano build-essential gcc \
 RUN pip install -r requirements.txt
 ENV PYTHONPATH=/home
-CMD ["-m", "pytest", "tests/"]
+CMD ["-m", "python", "pytest", "tests/"]
