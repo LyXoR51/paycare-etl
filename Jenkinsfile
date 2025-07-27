@@ -15,7 +15,7 @@ pipeline {
         stage('Clone repository') {
             steps {
                 // This clones the Git repo from the 'development' branch
-                git branch: 'main', url: 'https://github.com/qxzjy/paycare.git'
+                git branch: 'main', url: 'https://github.com/LyXoR51/paycare-etl.git'
             }
         }
 
